@@ -18,6 +18,16 @@ public class Main {
         return products.stream().anyMatch(product -> product.getProId().equals(productId) && qty <= product.getStockQty());
     }
 
+    public static boolean isProductIdExistInInvoice(int productId, Map<Integer, Invoice> invoices) {
+        for (Map.Entry<Integer, Invoice> entry : invoices.entrySet()) {
+            Integer invoiceId = entry.getKey();
+            if (invoiceId.equals(productId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static void main(String[] args) {
         // Set default value for product
         Scanner scanner = new Scanner(System.in);
@@ -33,8 +43,8 @@ public class Main {
                 )
         );
         // Instance object for sale
-        Map<Integer, Sell> sells = new HashMap<>();
-        ArrayList<Invoice> invoices = new ArrayList<>();
+        Sell sell = new Sell();
+        Map<Integer, Invoice> invoices = new HashMap();
         int idAutoIncrement = 1;
         // Create system to sell product
         do {
@@ -53,23 +63,29 @@ public class Main {
 
                     if (isProductExist(productId, products)) {
 
-                        for (Product product : products) {
+                        if (isProductIdExistInInvoice(productId, invoices)) {
 
-                            if (product.getProId() == productId) {
+                            for (Product product : products) {
 
-                                System.out.print("Enter QTY : ");
-                                int qty = scanner.nextInt();
+                                if (product.getProId() == productId) {
 
-                                if (isQtyUnderStockQty(productId, products, qty)) {
+                                    System.out.print("Enter QTY : ");
+                                    int qty = scanner.nextInt();
 
-                                    System.out.print("Enter Discount: ");
-                                    Float discount = scanner.nextFloat();
-                                    sells.put(productId, new Sell(product, qty, discount));
-                                    invoices.add(new Invoice(idAutoIncrement, product, sells.get(productId), qty * product.getPrice()));
+                                    if (isQtyUnderStockQty(productId, products, qty)) {
+
+                                        System.out.print("Enter Discount: ");
+                                        Float discount = scanner.nextFloat();
+                                        sell = new Sell(product, qty, discount);
+                                        invoices.put(product.getProId(), new Invoice(idAutoIncrement, product, sell, qty * product.getPrice()));
+                                    }
+                                    idAutoIncrement++;
                                 }
-                                idAutoIncrement++;
                             }
+                        } else {
+                            System.out.println("Product id is already in cart. Please try again!");
                         }
+
                     } else {
                         System.out.println("Product id is not exits. Please try again!");
                     }
@@ -78,11 +94,16 @@ public class Main {
                 break;
                 case 2: {
                     System.out.println("===== Invoice =====");
-                    System.out.println("ID      ProductId       ProductName     Product Price       Discount        Total");
-                    for (Invoice invoice : invoices) {
-                        System.out.println("Id: "+invoice.getId() + " ProductId: "  + invoice.getProduct().getProId() + " ProductName: "
-                                + invoice.getProduct().getName() + " ProductPrice: " + invoice.getProduct().getPrice() + " Discount: "
-                                + invoice.getSell().getDiscount() + " Total: " + invoice.getTotal());
+                    for (Map.Entry<Integer, Invoice> entry : invoices.entrySet()) {
+                        Integer invoiceId = entry.getKey();
+                        Invoice invoice = entry.getValue();
+                        System.out.println("Invoice ID: " + invoiceId);
+                        System.out.println("Product ID: " + invoice.getProduct().getProId());
+                        System.out.println("Product Name: " + invoice.getProduct().getName());
+                        System.out.println("Product Price: " + invoice.getProduct().getPrice());
+                        System.out.println("Discount: " + invoice.getSell().getDiscount());
+                        System.out.println("Total: " + invoice.getTotal());
+                        System.out.println("-------------------------");
                     }
                 }
                 break;
